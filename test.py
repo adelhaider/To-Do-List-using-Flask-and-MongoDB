@@ -1,15 +1,21 @@
 from flask import Flask, render_template,request,redirect,url_for # For flask implementation
+import blinker as _ # Flask requires the Blinker library, which Flask uses for signalling.
+
 from pymongo import MongoClient # Database connector
 from bson.objectid import ObjectId # For ObjectId to work
+from ddtrace import tracer # For Datadog APM
+from ddtrace.contrib.flask import TraceMiddleware # For Datadog APM Tracing
 
 client = MongoClient('localhost', 27017)    #Configure the connection to the database
 db = client.camp2016    #Select the database
 todos = db.todo #Select the collection
 
-app = Flask(__name__)
+app = Flask("ToDO-App")
 title = "TODO with Flask"
 heading = "ToDo Reminder"
 #modify=ObjectId()
+
+traced_app = TraceMiddleware(app, tracer, service="todo-app", distributed_tracing=False)
 
 def redirect_url():
     return request.args.get('next') or \
